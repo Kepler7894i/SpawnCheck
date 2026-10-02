@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -167,21 +169,22 @@ public final class SpawnAnalyzer {
 	// Spawn lists
 	// ------------------------------------------------------------------------------------------------
 
-	private List<Weighted<MobSpawnSettings.SpawnerData>> mobsAt(final MobCategory category, final BlockPos pos) {
+	private List<Weighted<MobSpawnSettings.SpawnerData>> mobsAt(final MobCategory category, final BlockPos pos, final Holder<Biome> biome) {
 		if (NaturalSpawner.isInNetherFortressBounds(pos, level, category, structures)) {
 			return net.minecraft.world.level.levelgen.structure.structures.NetherFortressStructure.FORTRESS_ENEMIES.unwrap();
 		}
-		return generator.getMobsAt(level, structures, category, pos).unwrap();
+		return generator.getMobsAt(biome, structures, category, pos).unwrap();
 	}
 
 	/** Every entity type that appears in some spawn list at this position (biome + structure overrides). */
 	public Set<EntityType<?>> candidates(final BlockPos pos) {
+		Holder<Biome> biome = level.getBiome(pos);
 		Set<EntityType<?>> result = new LinkedHashSet<>();
 		for (MobCategory category : MobCategory.values()) {
 			if (category == MobCategory.MISC) {
 				continue;
 			}
-			for (Weighted<MobSpawnSettings.SpawnerData> entry : mobsAt(category, pos)) {
+			for (Weighted<MobSpawnSettings.SpawnerData> entry : mobsAt(category, pos, biome)) {
 				result.add(entry.value().type());
 			}
 		}
@@ -189,7 +192,8 @@ public final class SpawnAnalyzer {
 	}
 
 	private boolean inSpawnList(final EntityType<?> type, final BlockPos pos) {
-		for (Weighted<MobSpawnSettings.SpawnerData> entry : mobsAt(type.getCategory(), pos)) {
+		Holder<Biome> biome = level.getBiome(pos);
+		for (Weighted<MobSpawnSettings.SpawnerData> entry : mobsAt(type.getCategory(), pos, biome)) {
 			if (entry.value().type() == type) {
 				return true;
 			}

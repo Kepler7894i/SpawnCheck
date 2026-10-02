@@ -61,7 +61,7 @@ public final class FakePlayers {
 		player.setGameMode(GameType.CREATIVE);
 		player.getAbilities().flying = true;
 		player.onUpdateAbilities();
-		player.setPermanentlyInvulnerable(true);
+		player.setInvulnerable(true);
 		PLAYERS.put(name, player);
 		return player;
 	}
