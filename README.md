@@ -162,6 +162,8 @@ Every push to `main` runs [.github/workflows/release.yml](.github/workflows/rele
 
 To release a change, bump `version` in `gradle.properties` (it follows [semantic versioning](https://semver.org/)) and push to `main`.
 
+Older Minecraft versions are maintained on `mc/<version>` branches (for example `mc/26.2`), and pushing one of those refreshes that version's release too. Changes go on the oldest branch and are merged forward; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Targeting another Minecraft version
 
 ```
