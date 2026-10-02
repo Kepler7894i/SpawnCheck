@@ -36,6 +36,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.AABB;
@@ -54,6 +56,8 @@ public class SpawnCheckClient implements ClientModInitializer {
 	private static final int DESPAWN_FAR = 0xFFB060FF;
 	private static final int DESPAWN_NEAR = 0xFFFF70D0;
 	private static final int NO_SPAWN = 0xFFFF6040;
+	/** The world spawn point's own no-spawn sphere, in a different shade so it isn't mistaken for a player's. */
+	private static final int NO_SPAWN_WORLD = 0xFFFFA040;
 	/** Straight segments per circle of the despawn spheres; at a 128 block radius this stays within ~0.15 blocks of a true circle. */
 	private static final int SPHERE_SEGMENTS = 64;
 
@@ -164,6 +168,21 @@ public class SpawnCheckClient implements ClientModInitializer {
 	}
 
 	/** Every position the despawn spheres are currently drawn round. */
+	/**
+	 * Centre of the world spawn point's no-spawn sphere (nothing spawns within 24 blocks of it either), or null when it
+	 * doesn't apply here: the spawn point is in another dimension, or outside the render distance.
+	 */
+	private static Vec3 worldSpawnCenter(final Minecraft mc) {
+		LevelData.RespawnData respawn = mc.level.getRespawnData();
+		if (!respawn.dimension().equals(mc.level.dimension())) {
+			return null;
+		}
+		BlockPos pos = respawn.pos();
+		ChunkPos here = mc.player.chunkPosition();
+		int chunks = Math.max(Math.abs((pos.getX() >> 4) - here.x()), Math.abs((pos.getZ() >> 4) - here.z()));
+		return chunks > mc.options.getEffectiveRenderDistance() ? null : Vec3.atCenterOf(pos);
+	}
+
 	private static List<Vec3> sphereCenters(final Minecraft mc) {
 		Around around = Around.byId(config.despawnAround);
 		List<Vec3> centers = new ArrayList<>();
@@ -219,6 +238,12 @@ public class SpawnCheckClient implements ClientModInitializer {
 				}
 				if (config.noSpawn) {
 					emitSphere(center, SpawnAnalyzer.NO_SPAWN_DISTANCE, NO_SPAWN);
+				}
+			}
+			if (config.noSpawn) {
+				Vec3 spawn = worldSpawnCenter(mc);
+				if (spawn != null) {
+					emitSphere(spawn, SpawnAnalyzer.NO_SPAWN_DISTANCE, NO_SPAWN_WORLD);
 				}
 			}
 		}
@@ -304,7 +329,8 @@ public class SpawnCheckClient implements ClientModInitializer {
 		}
 		if (config.noSpawn) {
 			int r = SpawnAnalyzer.NO_SPAWN_DISTANCE;
-			add(lines, colors, "No-spawn sphere: radius " + r + " (" + 2 * r + " across) round " + aroundText(), NO_SPAWN);
+			add(lines, colors, "No-spawn sphere: radius " + r + " (" + 2 * r + " across) round " + aroundText()
+				+ (worldSpawnCenter(mc) != null ? " + world spawn" : ""), NO_SPAWN);
 		}
 
 		Payloads.ScanResult r = latest;

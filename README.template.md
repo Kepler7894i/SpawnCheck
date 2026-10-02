@@ -122,7 +122,7 @@ Mobs spawn and despawn according to the **3D distance** to the nearest player, s
 
 | Sphere | Radius | What it means | Colour |
 | --- | --- | --- | --- |
-| No-spawn | 24 | A natural spawn needs the nearest player to be farther than this (and also farther than this from the world spawn point). Nothing spawns inside it. | orange |
+| No-spawn | 24 | A natural spawn needs the nearest player to be farther than this. Nothing spawns inside it. The world spawn point has the same 24-block rule, so it gets its own sphere (amber) whenever it is within your render distance. | orange (players), amber (world spawn) |
 | No-despawn | 32 | Mobs inside it never despawn. Beyond it, a mob that has done nothing for 30 seconds can vanish at random. | pink |
 | Despawn | 128 | Mobs beyond it despawn immediately. A farm whose mobs fall or are carried outside this sphere loses them before they reach the killing area. | purple |
 
