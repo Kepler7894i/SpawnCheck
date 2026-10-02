@@ -37,7 +37,7 @@ configure(subprojects.filter { it.name != "common" }) {
     }
 
     tasks.named<Jar>("jar") {
-        from(rootProject.file("LICENSE")) {
+        from(rootProject.files("LICENSE", "COPYING")) {
             rename { "${it}_spawncheck" }
         }
     }
