@@ -108,13 +108,13 @@ All commands start with `/spawncheck`. They are client commands, so they work on
 | `radius <1-128>` | Horizontal scan radius (default 128) |
 | `height <1-2032>` | Vertical scan radius (default 6); it is clamped to the world height |
 | `size <1-128>` | Sets `radius` and `height` to the same value |
-| `fake` / `fake <x> <y> <z>` / `fake remove` | Place a fake player at your position / a position, or remove them all |
+| `fake` / `fake <x> <y> <z>` / `fake remove [<name>]` | Place a fake player at your position / a position, or remove one by name (all of them if no name) |
 | `despawn` | Show / hide the **128** despawn sphere (`despawn far` does the same) |
 | `despawn near` | Show / hide the **32** no-despawn sphere |
 | `nospawn` | Show / hide the **24** no-spawn sphere |
 | `despawn around you\|fake\|both` | Centre the spheres on you, the fake players, or both (also `nospawn around ...`) |
 
-Operators can also run `/spawncheckfake` (no argument places a fake player where they stand), `/spawncheckfake <pos>` and `/spawncheckfake remove` on the server itself.
+Operators can also run `/spawncheckfake` (no argument places a fake player where they stand), `/spawncheckfake <pos>` and `/spawncheckfake remove [<name>]` on the server itself.
 
 Settings (mode, mob, radius, which overlays are on, ...) are saved in `config/spawncheck.json`. Big scans cost the server time, so the scan refreshes every 0.5 to 5 seconds depending on its volume. At most 30,000 spots are shown; the HUD tells you when the limit is hit.
 
@@ -132,7 +132,7 @@ The 32 and 128 distances belong to the mob's category (they are the monster valu
 
 ### Fake players
 
-`/spawncheck fake` adds a creative, flying, invulnerable stand-in player (named `SpawnCheck1`, `SpawnCheck2`, ...) at your position. It counts for spawning like a real player, so you can switch to spectator mode (which doesn't count) and test a farm with the fake player as the only one. Mobs spawn more than 24 blocks from it. They are removed with `/spawncheck fake remove` and when the server stops.
+`/spawncheck fake` adds a creative, flying, invulnerable stand-in player (named `SpawnCheck1`, `SpawnCheck2`, ...) at your position. It counts for spawning like a real player, so you can switch to spectator mode (which doesn't count) and test a farm with the fake player as the only one. Mobs spawn more than 24 blocks from it. They are removed with `/spawncheck fake remove` (all) or `/spawncheck fake remove SpawnCheck2` (one), and when the server stops.
 
 ## How accurate is it?
 

@@ -30,6 +30,9 @@ public final class SpawnCheckCommand<S> {
 		void error(S source, Component message);
 	}
 
+	/** Fake players are named this plus a number (see FakePlayers.spawn). */
+	private static final String FAKE_PREFIX = "SpawnCheck";
+
 	private final Feedback<S> feedback;
 
 	public SpawnCheckCommand(final Feedback<S> feedback) {
@@ -90,14 +93,30 @@ public final class SpawnCheckCommand<S> {
 						return 1;
 					})))))
 			.then(literal("fake")
-				.executes(c -> sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.SPAWN, false, BlockPos.ZERO)))
-				.then(literal("remove").executes(c ->
-					sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.REMOVE_ALL, false, BlockPos.ZERO))))
+				.executes(c -> sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.SPAWN, false, BlockPos.ZERO, "")))
+				.then(literal("remove")
+					.executes(c -> sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.REMOVE_ALL, false, BlockPos.ZERO, "")))
+					.then(this.<String>argument("name", StringArgumentType.word())
+						.suggests((context, builder) -> {
+							var connection = Minecraft.getInstance().getConnection();
+							if (connection != null) {
+								String typed = builder.getRemainingLowerCase();
+								for (var info : connection.getOnlinePlayers()) {
+									String name = info.getProfile().name();
+									if (name.startsWith(FAKE_PREFIX) && name.toLowerCase().startsWith(typed)) {
+										builder.suggest(name);
+									}
+								}
+							}
+							return builder.buildFuture();
+						})
+						.executes(c -> sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.REMOVE_ONE, false, BlockPos.ZERO,
+							StringArgumentType.getString(c, "name"))))))
 				.then(argument("x", IntegerArgumentType.integer())
 					.then(argument("y", IntegerArgumentType.integer())
 						.then(argument("z", IntegerArgumentType.integer()).executes(c ->
 							sendFake(c.getSource(), new Payloads.FakeRequest(Payloads.FakeRequest.SPAWN, true, new BlockPos(
-								IntegerArgumentType.getInteger(c, "x"), IntegerArgumentType.getInteger(c, "y"), IntegerArgumentType.getInteger(c, "z")))))))))
+								IntegerArgumentType.getInteger(c, "x"), IntegerArgumentType.getInteger(c, "y"), IntegerArgumentType.getInteger(c, "z")), "")))))))
 			.then(literal("at")
 				.then(literal("player").executes(c -> {
 					config.useCenter = false;
