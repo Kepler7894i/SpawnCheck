@@ -52,6 +52,19 @@ If there are several maintained versions, merge through them in order (`26.2` â†
 
 **Version numbers.** `version` (the mod's own version) is shared. Bump it on the oldest branch together with the change so merging brings the bump along. `minecraftVersion`, `fabricLoaderVersion`, `fabricApiVersion` and `neoforgeVersion` belong to each branch and must not be overwritten by a merge; if git shows a conflict there, keep the newer branch's values.
 
+### Branch names clash with release tags
+
+A version branch is named exactly like its release tag (branch `26.2`, tag `26.2`). Git then warns `refname '26.2' is ambiguous` and some commands pick the **tag** instead of the branch. For example `git merge 26.2` silently reports "Already up to date" because it merged the tag, which is already in `main`.
+
+Always spell out the full ref when merging, pushing or comparing:
+
+```bash
+git merge refs/heads/26.2
+git push origin refs/heads/26.2
+```
+
+Also check you are on the oldest branch (`git branch --show-current`) *before* you start editing: never commit a shared change on `main`, and never merge `main` (or any newer branch) into an older one.
+
 ### Starting support for a new Minecraft version
 
 1. Create a maintenance branch from the current `main` for the version you are leaving: `git branch 26.3 main && git push origin 26.3`. (It keeps publishing its release when you push to it.)
