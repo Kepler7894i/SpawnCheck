@@ -1,6 +1,6 @@
 name: Release
 
-# Every push to main publishes (or refreshes) a release for the Minecraft version in gradle.properties.
+# Every push to main (or to a mc/<version> maintenance branch, see CONTRIBUTING.md) publishes (or refreshes) a release for the Minecraft version in gradle.properties.
 # Release tag == Minecraft version (the value of minecraftVersion in gradle.properties), so the latest release for any Minecraft version can always be
 # found and downloaded later, even after main has moved on to a newer Minecraft version.
 #   - If the project builds, the Fabric and NeoForge jars are attached.
@@ -10,7 +10,7 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'mc/**']
   workflow_dispatch:
 
 permissions:
@@ -49,7 +49,7 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add README.md
             git commit -m "Render README for Minecraft ${{ steps.v.outputs.mc }} [skip ci]"
-            git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; }
+            git push origin HEAD:${{ github.ref_name }} || { git pull --rebase origin ${{ github.ref_name }} && git push origin HEAD:${{ github.ref_name }}; }
           fi
 
       - uses: gradle/actions/setup-gradle@v6

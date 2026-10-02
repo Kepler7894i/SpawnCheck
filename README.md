@@ -1,7 +1,7 @@
 <!-- GENERATED FILE: edit README.template.md instead (see tools/RenderReadme.java). -->
 # Spawn Check
 
-A **Fabric** and **NeoForge** mod for **Minecraft 26.3** that shows where mobs will **actually** spawn, and tells you exactly why they won't where they don't. It is built for debugging mob farms.
+A **Fabric** and **NeoForge** mod for **Minecraft 26.2** that shows where mobs will **actually** spawn, and tells you exactly why they won't where they don't. It is built for debugging mob farms.
 
 Looking at light levels and block types only gets you so far: a spot can look perfect and still never spawn anything because the mob cap is full, the chunk isn't entity-ticking, the nearest player is 23 blocks away, the biome has no entry for that mob, or a spider's 1.4-block-wide hitbox doesn't fit. Spawn Check re-implements the checks vanilla's natural spawner makes for a single block position, runs them for every open floor spot around you, and paints the answer in the world.
 
@@ -19,17 +19,17 @@ Looking at light levels and block types only gets you so far: a spot can look pe
 
 ## Requirements
 
-- Minecraft **26.3**
-- **Fabric**: [Fabric Loader](https://fabricmc.net/use/) 0.19.5 or newer and [Fabric API](https://modrinth.com/mod/fabric-api). **NeoForge**: [NeoForge](https://neoforged.net/) 26.3.0.40-beta or newer.
-- Java 25 (the Java Minecraft 26.3 itself uses)
+- Minecraft **26.2**
+- **Fabric**: [Fabric Loader](https://fabricmc.net/use/) 0.19.5 or newer and [Fabric API](https://modrinth.com/mod/fabric-api). **NeoForge**: [NeoForge](https://neoforged.net/) 26.2.0.88 or newer.
+- Java 25 (the Java Minecraft 26.2 itself uses)
 
 The analysis runs on the **server**, so the mod must be installed there too (in single player that is automatic), and each player who wants the overlay needs it on their client. On a server, only operators (permission level 2 or higher) can use it; a player without the permission gets a message instead of results. A client that joins a server without the mod simply sees "Server doesn't have Spawn Check".
 
 ## Download and install
 
-Current target: **Minecraft 26.3**, mod version **1.1.0**.
+Current target: **Minecraft 26.2**, mod version **1.1.0**.
 
-Jars are on the [Releases page](../../releases): `spawncheck-fabric-26.3-<version>.jar` and `spawncheck-neoforge-26.3-<version>.jar`. The easy way is the install script for your OS, which also fetches Fabric API if you are on Fabric and don't have it. Or do it by hand: put the jar for your loader (and, on Fabric, Fabric API) in your `mods` folder.
+Jars are on the [Releases page](../../releases): `spawncheck-fabric-26.2-<version>.jar` and `spawncheck-neoforge-26.2-<version>.jar`. The easy way is the install script for your OS, which also fetches Fabric API if you are on Fabric and don't have it. Or do it by hand: put the jar for your loader (and, on Fabric, Fabric API) in your `mods` folder.
 
 ### Install scripts
 
@@ -154,13 +154,15 @@ Spawn Check answers "is this spot *allowed* to spawn this mob right now?". It is
 Two versions are tracked, both only in [gradle.properties](gradle.properties):
 
 - `version`: the mod's own version (1.1.0).
-- `minecraftVersion`: the Minecraft version it targets (26.3).
+- `minecraftVersion`: the Minecraft version it targets (26.2).
 
 Everything else derives from them: the jar names (`spawncheck-<loader>-<minecraftVersion>-<version>.jar`), the mod metadata (`fabric.mod.json`, `neoforge.mods.toml`), the release tag, name and notes, the install scripts and this README.
 
 Every push to `main` runs [.github/workflows/release.yml](.github/workflows/release.yml), which builds the mod and publishes a release whose **tag is the Minecraft version**: the Fabric and NeoForge jars, the install scripts and a source snapshot (`spawncheck-<mc>-source.zip`). If the build fails the source snapshot is still published. When `main` moves to a newer Minecraft version, the older release stays, so the latest build for an older Minecraft version can always be downloaded from its tag.
 
 To release a change, bump `version` in `gradle.properties` (it follows [semantic versioning](https://semver.org/)) and push to `main`.
+
+Older Minecraft versions are maintained on `mc/<version>` branches (for example `mc/26.2`), and pushing one of those refreshes that version's release too. Changes go on the oldest branch and are merged forward; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Targeting another Minecraft version
 
