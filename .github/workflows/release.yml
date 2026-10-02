@@ -3,7 +3,7 @@ name: Release
 # Every push to main publishes (or refreshes) a release for the Minecraft version in gradle.properties.
 # Release tag == Minecraft version (the value of minecraftVersion in gradle.properties), so the latest release for any Minecraft version can always be
 # found and downloaded later, even after main has moved on to a newer Minecraft version.
-#   - If the project builds, the jar is attached.
+#   - If the project builds, the Fabric and NeoForge jars are attached.
 #   - If it does not build (e.g. mid-port to a new Minecraft version), the release still contains the
 #     version-specific source snapshot so that state can be recovered.
 # To release a change, bump `version` in gradle.properties.
@@ -66,7 +66,8 @@ jobs:
             -o "out/spawncheck-${{ steps.v.outputs.mc }}-source.zip" HEAD
           cp install-windows.ps1 install-linux.sh install-macos.sh out/
           if [ "${{ steps.build.outcome }}" = "success" ]; then
-            cp build/libs/spawncheck-fabric-*.jar out/ || true
+            cp fabric/build/libs/spawncheck-fabric-*.jar out/ || true
+            cp neoforge/build/libs/spawncheck-neoforge-*.jar out/ || true
             rm -f out/*-sources.jar
           fi
           ls -la out
@@ -84,14 +85,15 @@ jobs:
             status="The build failed for commit ${sha}, so only the source snapshot and scripts are attached."
           fi
           cat > notes.md <<'NOTES'
-          Spawn Check @VER@ for **Minecraft @MC@**: shows where mobs will actually spawn, and why they won't where they don't. Fabric only; needs Fabric API. Install it on the server as well as the client.
+          Spawn Check @VER@ for **Minecraft @MC@**: shows where mobs will actually spawn, and why they won't where they don't. Install it on the server as well as the client.
 
           **Files**
-          - `spawncheck-fabric-@MC@-@VER@.jar`: the mod
-          - `install-windows.ps1`, `install-linux.sh`, `install-macos.sh`: installers for Windows, Linux and macOS (they also install Fabric API if your `mods` folder has none; options in the README)
+          - `spawncheck-fabric-@MC@-@VER@.jar`: Fabric (needs Fabric API)
+          - `spawncheck-neoforge-@MC@-@VER@.jar`: NeoForge
+          - `install-windows.ps1`, `install-linux.sh`, `install-macos.sh`: installers for Windows, Linux and macOS (on Fabric they also install Fabric API if your `mods` folder has none; options in the README)
           - `spawncheck-@MC@-source.zip`: the exact source for this Minecraft version
 
-          **Install:** put the jar and Fabric API in your `mods` folder, or run `install-windows.ps1` (Windows), `./install-linux.sh` (Linux) or `./install-macos.sh` (macOS) from the folder containing the jar. Point the output at another folder (e.g. a server's `mods` folder) with `-ModsDir "<folder>"` (install-windows.ps1) or `--mods-dir <folder>` (install-linux.sh, install-macos.sh). Add `-NoDeps` / `--no-deps` to skip installing Fabric API.
+          **Install:** put the jar for your loader (and, on Fabric, Fabric API) in your `mods` folder, or run `install-windows.ps1` (Windows), `./install-linux.sh` (Linux) or `./install-macos.sh` (macOS) from the folder containing the jars. Add `-Loader neoforge` / `--loader neoforge` for NeoForge. Point the output at another folder (e.g. a server's `mods` folder) with `-ModsDir "<folder>"` (install-windows.ps1) or `--mods-dir <folder>` (install-linux.sh, install-macos.sh). Add `-NoDeps` / `--no-deps` to skip installing Fabric API.
 
           @STATUS@ This release is updated by every push to main while main targets Minecraft @MC@.
           NOTES
