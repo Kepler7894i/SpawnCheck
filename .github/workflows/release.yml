@@ -100,4 +100,6 @@ jobs:
           sed -i -e 's/^          //' -e "s|@MC@|$mc|g" -e "s|@VER@|$ver|g" -e "s|@STATUS@|$status|g" notes.md
           # Replace the previous release/tag for this Minecraft version with the current state.
           gh release delete "$mc" --cleanup-tag --yes 2>/dev/null || true
-          gh release create "$mc" out/* --target "$sha" --title "Spawn Check $mc" --notes-file notes.md
+          # Only main (the newest Minecraft version) is marked Latest; maintenance branches never take it over.
+          latest=true; [ "${{ github.ref_name }}" = main ] || latest=false
+          gh release create "$mc" out/* --target "$sha" --title "Spawn Check $mc" --notes-file notes.md --latest=$latest
