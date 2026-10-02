@@ -1,0 +1,37 @@
+# Gradle / build output
+.gradle/
+build/
+out/
+classes/
+*.class
+*.log
+hs_err_pid*
+
+# Dev run directories (worlds, logs and configs created by runClient / runServer)
+run/
+
+# Built jars are never committed (they are published as release assets); the Gradle wrapper jar is the exception
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+bin/
+*.launch
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local-only helper scripts (machine-specific install paths)
+*.local.ps1
+*.local.bat
+*.local.sh

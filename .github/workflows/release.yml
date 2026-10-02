@@ -1,0 +1,101 @@
+name: Release
+
+# Every push to main publishes (or refreshes) a release for the Minecraft version in gradle.properties.
+# Release tag == Minecraft version (the value of minecraftVersion in gradle.properties), so the latest release for any Minecraft version can always be
+# found and downloaded later, even after main has moved on to a newer Minecraft version.
+#   - If the project builds, the jar is attached.
+#   - If it does not build (e.g. mid-port to a new Minecraft version), the release still contains the
+#     version-specific source snapshot so that state can be recovered.
+# To release a change, bump `version` in gradle.properties.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read versions
+        id: v
+        run: |
+          mc=$(grep -E '^minecraftVersion=' gradle.properties | cut -d= -f2 | tr -d '\r ')
+          ver=$(grep -E '^version=' gradle.properties | cut -d= -f2 | tr -d '\r ')
+          echo "mc=$mc" >> "$GITHUB_OUTPUT"
+          echo "ver=$ver" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      # README.md is generated from README.template.md ({{minecraftVersion}} etc. come from gradle.properties).
+      # If the rendered result differs from what is committed, commit it (a GITHUB_TOKEN push does not re-trigger this workflow).
+      - name: Render README
+        run: |
+          java tools/RenderReadme.java
+          if ! git diff --quiet -- README.md; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "Render README for Minecraft ${{ steps.v.outputs.mc }} [skip ci]"
+            git push origin HEAD:main || { git pull --rebase origin main && git push origin HEAD:main; }
+          fi
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: chmod +x gradlew && ./gradlew build --no-daemon --console=plain
+
+      - name: Collect files
+        run: |
+          mkdir -p out
+          git archive --format=zip --prefix="spawncheck-${{ steps.v.outputs.mc }}-source/" \
+            -o "out/spawncheck-${{ steps.v.outputs.mc }}-source.zip" HEAD
+          cp install-windows.ps1 install-linux.sh install-macos.sh out/
+          if [ "${{ steps.build.outcome }}" = "success" ]; then
+            cp build/libs/spawncheck-fabric-*.jar out/ || true
+            rm -f out/*-sources.jar
+          fi
+          ls -la out
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          mc="${{ steps.v.outputs.mc }}"
+          ver="${{ steps.v.outputs.ver }}"
+          if [ "${{ steps.build.outcome }}" = "success" ]; then
+            status="Built from commit ${sha}."
+          else
+            status="The build failed for commit ${sha}, so only the source snapshot and scripts are attached."
+          fi
+          cat > notes.md <<'NOTES'
+          Spawn Check @VER@ for **Minecraft @MC@**: shows where mobs will actually spawn, and why they won't where they don't. Fabric only; needs Fabric API. Install it on the server as well as the client.
+
+          **Files**
+          - `spawncheck-fabric-@MC@-@VER@.jar`: the mod
+          - `install-windows.ps1`, `install-linux.sh`, `install-macos.sh`: installers for Windows, Linux and macOS (they also install Fabric API if your `mods` folder has none; options in the README)
+          - `spawncheck-@MC@-source.zip`: the exact source for this Minecraft version
+
+          **Install:** put the jar and Fabric API in your `mods` folder, or run `install-windows.ps1` (Windows), `./install-linux.sh` (Linux) or `./install-macos.sh` (macOS) from the folder containing the jar. Point the output at another folder (e.g. a server's `mods` folder) with `-ModsDir "<folder>"` (install-windows.ps1) or `--mods-dir <folder>` (install-linux.sh, install-macos.sh). Add `-NoDeps` / `--no-deps` to skip installing Fabric API.
+
+          @STATUS@ This release is updated by every push to main while main targets Minecraft @MC@.
+          NOTES
+          sed -i -e 's/^          //' -e "s|@MC@|$mc|g" -e "s|@VER@|$ver|g" -e "s|@STATUS@|$status|g" notes.md
+          # Replace the previous release/tag for this Minecraft version with the current state.
+          gh release delete "$mc" --cleanup-tag --yes 2>/dev/null || true
+          gh release create "$mc" out/* --target "$sha" --title "Spawn Check $mc" --notes-file notes.md

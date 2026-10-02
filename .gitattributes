@@ -1,0 +1,10 @@
+# Normalise line endings so the scripts work on every OS.
+* text=auto
+
+# Shell scripts must use LF (they run on Linux/macOS)
+*.sh            text eol=lf
+/gradlew        text eol=lf
+
+# Windows scripts use CRLF
+*.bat           text eol=crlf
+*.ps1           text eol=crlf

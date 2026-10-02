@@ -1,0 +1,6 @@
+{
+	"key.category.spawncheck.main": "Spawn Check",
+	"key.spawncheck.toggle": "Toggle spawn overlay",
+	"key.spawncheck.cycle_mode": "Cycle spawn mode (any / mob / only)",
+	"key.spawncheck.explain": "Explain why (block you look at)"
+}
