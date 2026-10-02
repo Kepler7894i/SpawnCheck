@@ -65,15 +65,17 @@ public final class Payloads {
 		}
 	}
 
-	/** Client -> server: place or remove stand-in players. */
-	public record FakeRequest(byte action, boolean hasPos, BlockPos pos) implements CustomPacketPayload {
+	/** Client -> server: place or remove stand-in players. {@code name} is only used by {@link #REMOVE_ONE}. */
+	public record FakeRequest(byte action, boolean hasPos, BlockPos pos, String name) implements CustomPacketPayload {
 		public static final byte SPAWN = 0;
 		public static final byte REMOVE_ALL = 1;
+		public static final byte REMOVE_ONE = 2;
 		public static final Type<FakeRequest> TYPE = new Type<>(SpawnCheckMod.id("fake_request"));
 		public static final StreamCodec<RegistryFriendlyByteBuf, FakeRequest> CODEC = StreamCodec.composite(
 			ByteBufCodecs.BYTE, FakeRequest::action,
 			ByteBufCodecs.BOOL, FakeRequest::hasPos,
 			BlockPos.STREAM_CODEC, FakeRequest::pos,
+			ByteBufCodecs.STRING_UTF8, FakeRequest::name,
 			FakeRequest::new
 		);
 

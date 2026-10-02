@@ -110,6 +110,12 @@ public final class ServerHandler {
 			send(player, ChatFormatting.YELLOW, removed == 0 ? "No fake players to remove." : "Removed " + removed + " fake player(s).");
 			return;
 		}
+		if (request.action() == Payloads.FakeRequest.REMOVE_ONE) {
+			boolean removed = FakePlayers.remove(request.name());
+			send(player, removed ? ChatFormatting.YELLOW : ChatFormatting.RED,
+				removed ? "Removed fake player " + request.name() + "." : "No fake player named " + request.name() + ".");
+			return;
+		}
 		BlockPos pos = request.hasPos() ? request.pos() : player.blockPosition();
 		ServerLevel level = player.level();
 		if (pos.getY() < level.getMinY() || pos.getY() > level.getMaxY()) {

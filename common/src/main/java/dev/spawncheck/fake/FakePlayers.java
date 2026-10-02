@@ -99,6 +99,16 @@ public final class FakePlayers {
 		return count;
 	}
 
+	/** Removes the fake player called {@code name}; false if there is none. */
+	public static boolean remove(final String name) {
+		FakePlayer player = PLAYERS.remove(name);
+		if (player == null) {
+			return false;
+		}
+		remove(player);
+		return true;
+	}
+
 	private static void remove(final FakePlayer player) {
 		if (player.connection != null) {
 			player.connection.onDisconnect(new DisconnectionDetails(Component.literal("Spawn Check fake player removed")));
