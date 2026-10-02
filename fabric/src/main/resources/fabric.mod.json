@@ -1,0 +1,32 @@
+{
+	"schemaVersion": 1,
+	"id": "spawncheck",
+	"version": "${version}",
+	"name": "Spawn Check",
+	"description": "Shows where mobs WILL actually spawn (not just where the block allows it) and explains why a mob can't spawn somewhere. Built for debugging mob farms.",
+	"authors": [
+		"Sam MacKay"
+	],
+	"contact": {
+		"homepage": "https://github.com/Kepler7894i/SpawnCheck",
+		"sources": "https://github.com/Kepler7894i/SpawnCheck",
+		"issues": "https://github.com/Kepler7894i/SpawnCheck/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/spawncheck/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.spawncheck.fabric.SpawnCheckFabric"
+		],
+		"client": [
+			"dev.spawncheck.fabric.SpawnCheckFabricClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=${fabric_loader_version}",
+		"minecraft": "~${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
