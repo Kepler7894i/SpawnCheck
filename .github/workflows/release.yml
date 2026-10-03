@@ -25,6 +25,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # the previous commit is needed to tell whether `version` was bumped
+
+      # Publish to Modrinth/CurseForge only for a new mod version: those sites refuse (or duplicate) a version that already exists.
+      - name: Decide whether to publish
+        id: gate
+        run: |
+          publish=false
+          if [ "${{ github.event_name }}" = workflow_dispatch ]; then
+            [ "${{ inputs.publish }}" = true ] && publish=true
+          else
+            before="${{ github.event.before }}"
+            now=$(grep -E '^version=' gradle.properties | cut -d= -f2 | tr -d '\r ')
+            if [ -z "$before" ] || [ -z "${before//0/}" ] || ! git cat-file -e "$before^{commit}" 2>/dev/null; then
+              publish=true   # a new branch or an unreachable previous commit: treat as new
+            else
+              old=$(git show "$before:gradle.properties" 2>/dev/null | grep -E '^version=' | cut -d= -f2 | tr -d '\r ')
+              [ "$old" != "$now" ] && publish=true
+            fi
+          fi
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "Publish to Modrinth/CurseForge: $publish"
 
       - name: Read versions
         id: v
