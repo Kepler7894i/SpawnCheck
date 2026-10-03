@@ -50,6 +50,11 @@ public class SetVersion {
         // Prefer a stable NeoForge; right after a Minecraft release only betas may exist.
         String neoForgeVersion = last(neoStable.isEmpty() ? neo : neoStable, "NeoForge for " + mc);
 
+        String forgePrefix = mc + "-";
+        List<String> forge = versions(http, "https://maven.minecraftforge.net/net/minecraftforge/forge/maven-metadata.xml").stream()
+            .filter(v -> v.startsWith(forgePrefix)).toList();
+        String forgeVersion = last(forge, "Forge for " + mc).substring(mc.length() + 1);
+
         String loader = release(http, "https://maven.fabricmc.net/net/fabricmc/fabric-loader/maven-metadata.xml", "Fabric Loader");
 
         String[][] updates = {
@@ -57,6 +62,7 @@ public class SetVersion {
             {"fabricLoaderVersion", loader},
             {"fabricApiVersion", fabricApiVersion},
             {"neoforgeVersion", neoForgeVersion},
+            {"forgeVersion", forgeVersion},
         };
 
         String text = Files.readString(props, StandardCharsets.UTF_8);

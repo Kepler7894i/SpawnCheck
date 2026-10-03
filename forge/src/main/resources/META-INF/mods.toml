@@ -1,0 +1,27 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "LGPL-3.0-only"
+issueTrackerURL = "https://github.com/Kepler7894i/SpawnCheck/issues"
+
+[[mods]]
+modId = "spawncheck"
+version = "${version}"
+displayName = "Spawn Check"
+displayURL = "https://github.com/Kepler7894i/SpawnCheck"
+logoFile = "assets/spawncheck/icon.png"
+authors = "Sam MacKay"
+description = "Shows where mobs WILL actually spawn (not just where the block allows it) and explains why a mob can't spawn somewhere. Built for debugging mob farms."
+
+[[dependencies.spawncheck]]
+modId = "forge"
+mandatory = true
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.spawncheck]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version},)"
+ordering = "NONE"
+side = "BOTH"

@@ -3,7 +3,7 @@ name: Release
 # Every push to main (or to a supported/<version> maintenance branch, see CONTRIBUTING.md) publishes (or refreshes) a release for the Minecraft version in gradle.properties.
 # Release tag == Minecraft version (the value of minecraftVersion in gradle.properties), so the latest release for any Minecraft version can always be
 # found and downloaded later, even after main has moved on to a newer Minecraft version.
-#   - If the project builds, the Fabric and NeoForge jars are attached.
+#   - If the project builds, the Fabric, NeoForge and Forge jars are attached.
 #   - If it does not build (e.g. mid-port to a new Minecraft version), the release still contains the
 #     version-specific source snapshot so that state can be recovered.
 # To release a change, bump `version` in gradle.properties.
@@ -106,6 +106,7 @@ jobs:
           if [ "${{ steps.build.outcome }}" = "success" ]; then
             cp fabric/build/libs/spawncheck-fabric-*.jar out/ || true
             cp neoforge/build/libs/spawncheck-neoforge-*.jar out/ || true
+            cp forge/build/libs/spawncheck-forge-*.jar out/ || true
             rm -f out/*-sources.jar
           fi
           ls -la out
@@ -128,6 +129,7 @@ jobs:
           **Files**
           - `spawncheck-fabric-@MC@-@VER@.jar`: Fabric (needs Fabric API)
           - `spawncheck-neoforge-@MC@-@VER@.jar`: NeoForge
+          - `spawncheck-forge-@MC@-@VER@.jar`: Forge
           - `install-windows.ps1`, `install-linux.sh`, `install-macos.sh`: installers for Windows, Linux and macOS (on Fabric they also install Fabric API if your `mods` folder has none; options in the README)
           - `spawncheck-@MC@-source.zip`: the exact source for this Minecraft version
 

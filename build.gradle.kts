@@ -2,6 +2,7 @@ plugins {
     java
     id("net.fabricmc.fabric-loom") version "1.18.2" apply false
     id("net.neoforged.moddev") version "2.0.148" apply false
+    id("net.minecraftforge.gradle") version "[7.0.17,8)" apply false
 }
 
 // Fabric and NeoForge are built from the same loader-independent sources in common/ (see fabric/ and neoforge/).
@@ -24,6 +25,7 @@ configure(subprojects.filter { it.name != "common" }) {
         mavenCentral()
         maven(url = "https://maven.fabricmc.net/")
         maven(url = "https://maven.neoforged.net/releases/")
+        maven(url = "https://maven.minecraftforge.net/")
     }
 
     java {
