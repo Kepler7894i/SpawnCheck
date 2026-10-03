@@ -12,6 +12,11 @@ on:
   push:
     branches: [main, 'supported/**']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Builds releases for GitHub and publishes the jars to Modrinth and CurseForge
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,6 +28,11 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+      CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+      MODRINTH_ID: ${{ vars.MODRINTH_ID }}
+      CURSEFORGE_ID: ${{ vars.CURSEFORGE_ID }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -125,3 +135,92 @@ jobs:
           # Only main (the newest Minecraft version) is marked Latest; maintenance branches never take it over.
           latest=true; [ "${{ github.ref_name }}" = main ] || latest=false
           gh release create "$mc" out/* --target "$sha" --title "Spawn Check $mc" --notes-file notes.md --latest=$latest
+
+      - name: Write changelog
+        if: steps.build.outcome == 'success' && steps.gate.outputs.publish == 'true'
+        run: |
+          {
+            echo "Spawn Checker ${{ steps.v.outputs.ver }} for Minecraft ${{ steps.v.outputs.mc }}."
+            echo
+            before="${{ github.event.before }}"
+            if [ -n "$before" ] && [ -n "${before//0/}" ] && git cat-file -e "$before^{commit}" 2>/dev/null; then
+              git log --no-merges --format='- %s' "$before..HEAD" | grep -v 'Render README' || true
+            else
+              git log -1 --format='- %s'
+            fi
+          } > changelog.md
+          cat changelog.md
+
+      # One Modrinth version carries all three loaders' jars.
+      - name: Publish to Modrinth
+        if: steps.build.outcome == 'success' && steps.gate.outputs.publish == 'true' && env.MODRINTH_TOKEN != '' && env.MODRINTH_ID != ''
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ env.MODRINTH_ID }}
+          modrinth-token: ${{ env.MODRINTH_TOKEN }}
+          files: |
+            out/spawncheck-fabric-*.jar
+            out/spawncheck-neoforge-*.jar
+            out/spawncheck-forge-*.jar
+          name: Spawn Checker ${{ steps.v.outputs.ver }} for Minecraft ${{ steps.v.outputs.mc }}
+          version: ${{ steps.v.outputs.ver }}+${{ steps.v.outputs.mc }}
+          version-type: release
+          changelog-file: changelog.md
+          loaders: |
+            fabric
+            neoforge
+            forge
+          game-versions: ${{ steps.v.outputs.mc }}
+          dependencies: |
+            fabric-api(required)
+
+      # CurseForge takes one loader per file, so each jar is its own upload.
+      - name: Publish Fabric to CurseForge
+        if: steps.build.outcome == 'success' && steps.gate.outputs.publish == 'true' && env.CURSEFORGE_TOKEN != '' && env.CURSEFORGE_ID != ''
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_ID }}
+          curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
+          files: out/spawncheck-fabric-*.jar
+          name: Spawn Checker ${{ steps.v.outputs.ver }} (Fabric ${{ steps.v.outputs.mc }})
+          version: ${{ steps.v.outputs.ver }}+${{ steps.v.outputs.mc }}
+          version-type: release
+          changelog-file: changelog.md
+          loaders: fabric
+          game-versions: ${{ steps.v.outputs.mc }}
+          dependencies: |
+            fabric-api(required)
+
+      - name: Publish NeoForge to CurseForge
+        if: steps.build.outcome == 'success' && steps.gate.outputs.publish == 'true' && env.CURSEFORGE_TOKEN != '' && env.CURSEFORGE_ID != ''
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_ID }}
+          curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
+          files: out/spawncheck-neoforge-*.jar
+          name: Spawn Checker ${{ steps.v.outputs.ver }} (NeoForge ${{ steps.v.outputs.mc }})
+          version: ${{ steps.v.outputs.ver }}+${{ steps.v.outputs.mc }}
+          version-type: release
+          changelog-file: changelog.md
+          loaders: neoforge
+          game-versions: ${{ steps.v.outputs.mc }}
+
+      - name: Publish Forge to CurseForge
+        if: steps.build.outcome == 'success' && steps.gate.outputs.publish == 'true' && env.CURSEFORGE_TOKEN != '' && env.CURSEFORGE_ID != ''
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ env.CURSEFORGE_ID }}
+          curseforge-token: ${{ env.CURSEFORGE_TOKEN }}
+          files: out/spawncheck-forge-*.jar
+          name: Spawn Checker ${{ steps.v.outputs.ver }} (Forge ${{ steps.v.outputs.mc }})
+          version: ${{ steps.v.outputs.ver }}+${{ steps.v.outputs.mc }}
+          version-type: release
+          changelog-file: changelog.md
+          loaders: forge
+          game-versions: ${{ steps.v.outputs.mc }}
+
+      - name: Note skipped platforms
+        if: steps.gate.outputs.publish == 'true'
+        run: |
+          [ -n "$MODRINTH_TOKEN" ] && [ -n "$MODRINTH_ID" ] || echo "::notice::Modrinth skipped: set the MODRINTH_TOKEN secret and the MODRINTH_ID variable."
+          [ -n "$CURSEFORGE_TOKEN" ] && [ -n "$CURSEFORGE_ID" ] || echo "::notice::CurseForge skipped: set the CURSEFORGE_TOKEN secret and the CURSEFORGE_ID variable."
