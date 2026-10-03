@@ -7,6 +7,12 @@ name: Release
 #   - If it does not build (e.g. mid-port to a new Minecraft version), the release still contains the
 #     version-specific source snapshot so that state can be recovered.
 # To release a change, bump `version` in gradle.properties.
+#
+# Publishing to Modrinth and CurseForge happens in the same run, but only when a push changes `version` (or the workflow is started by hand with
+# "publish" ticked), so ordinary pushes only refresh the GitHub release. It needs (Settings > Secrets and variables > Actions):
+#   secrets   MODRINTH_TOKEN, CURSEFORGE_TOKEN
+#   variables MODRINTH_ID (the project's ID or slug), CURSEFORGE_ID (the numeric project ID)
+# A platform whose token or ID is missing is skipped.
 
 on:
   push:
